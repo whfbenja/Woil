@@ -1,20 +1,4 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+// Raiz do app: reexporta a implementacao real em src/
+// (o template padrao do create-expo-app morava aqui; o Woil de verdade
+//  esta em src/App.tsx — camadas domain/infrastructure/application)
+export { default } from './src/App';
