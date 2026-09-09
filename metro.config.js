@@ -3,31 +3,8 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
-// Watch ONLY src and assets — everything else is ignored
-config.watchFolders = [
-  path.join(__dirname, 'src'),
-  path.join(__dirname, 'assets'),
-  path.join(__dirname, 'node_modules/expo'),
-];
-
-// Keep resolver block list to avoid scanning unnecessary files
-config.resolver.blockList = [
-  /.*\/\.claude\/.*/,
-  /.*\/Prompts\/.*/,
-  /.*\/\.git.*/,
-  /.*\/node_modules\/.*/,
-  /.*\/__tests__\/.*/,
-  /.*\.md$/,
-  /WOIL_.*\.md$/,
-  /jest\.config\.js$/,
-  /metro\.config\.js$/,
-  /package-lock\.json$/,
-  /\.expo\/.*/,
-  /.*\/\.git_backup\/.*/,
-  /.*\/\.expo\/.*/,
-];
-
-// Reduce workers to save resources
+// Termux: reduz workers para economizar recursos locais;
+// NAO bloqueia node_modules (quebraria a resolucao de modulos no EAS).
 config.maxWorkers = 1;
 
 module.exports = config;
