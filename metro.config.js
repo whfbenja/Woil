@@ -7,6 +7,7 @@ const config = getDefaultConfig(__dirname);
 config.watchFolders = [
   path.join(__dirname, 'src'),
   path.join(__dirname, 'assets'),
+  path.join(__dirname, 'node_modules/expo'),
 ];
 
 // Keep resolver block list to avoid scanning unnecessary files
@@ -16,7 +17,6 @@ config.resolver.blockList = [
   /.*\/\.git.*/,
   /.*\/node_modules\/.*/,
   /.*\/__tests__\/.*/,
-  /.*\/__tests__\/.*/,
   /.*\.md$/,
   /WOIL_.*\.md$/,
   /jest\.config\.js$/,
@@ -25,7 +25,6 @@ config.resolver.blockList = [
   /\.expo\/.*/,
   /.*\/\.git_backup\/.*/,
   /.*\/\.expo\/.*/,
-  /.*\/assets\/.*/,
 ];
 
 // Reduce workers to save resources
