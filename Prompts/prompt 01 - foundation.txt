@@ -1,0 +1,1574 @@
+Você está trabalhando no projeto WOIL.
+
+ANTES DE FAZER QUALQUER ALTERAÇÃO NO CÓDIGO, LEIA E RESPEITE TODO O CONTEXTO DISPONÍVEL DO PROJETO.
+
+==================================================
+1. HIERARQUIA DE CONTEXTO
+==================================================
+
+A pasta:
+
+/prompts
+
+é uma fonte oficial de contexto e instruções do projeto.
+
+Todos os prompts existentes nessa pasta devem ser considerados parte da documentação operacional do Woil.
+
+Também existe documentação oficial de arquitetura e design, incluindo:
+
+/WOIL_DESIGN_SYSTEM.md
+
+Leia esses arquivos antes de tomar decisões de implementação.
+
+IMPORTANTE:
+
+Os prompts possuem contexto hierárquico.
+
+Não trate este prompt isoladamente.
+
+Antes de implementar:
+
+1. Liste os arquivos relevantes em /prompts.
+2. Leia os prompts que forem aplicáveis.
+3. Leia /WOIL_DESIGN_SYSTEM.md.
+4. Inspecione a estrutura atual do projeto.
+5. Identifique o que já existe.
+6. Preserve decisões anteriores.
+7. Só então defina a implementação.
+
+Se houver conflito entre documentos:
+
+- NÃO escolha silenciosamente;
+- identifique o conflito;
+- explique qual documento parece mais recente ou específico;
+- preserve a decisão mais explícita e recente;
+- não destrua trabalho existente sem necessidade.
+
+Nunca invente requisitos que não estejam definidos.
+
+==================================================
+2. O QUE É O WOIL
+==================================================
+
+Woil significa conceitualmente:
+
+WATER + OIL.
+
+Água e óleo coexistem, mas não se misturam.
+
+Essa metáfora representa a filosofia do produto:
+
+- conhecimento e estrutura;
+- conteúdo e metadados;
+- humano e agente;
+- criatividade e desenvolvimento;
+- elementos diferentes trabalhando juntos sem perder sua identidade.
+
+O Woil é um aplicativo de Personal Knowledge Management (PKM).
+
+Ele é inspirado em conceitos de ferramentas como Obsidian, mas NÃO deve ser tratado como um clone do Obsidian.
+
+O objetivo é criar uma ferramenta própria.
+
+O princípio central é:
+
+O conhecimento pertence ao usuário.
+
+A IA é uma camada que trabalha sobre esse conhecimento.
+
+A IA não deve ser a dona dos dados.
+
+==================================================
+3. VISÃO DO PRODUTO
+==================================================
+
+O Woil será um ambiente pessoal para:
+
+- escrever;
+- organizar ideias;
+- conectar conhecimento;
+- pesquisar;
+- armazenar livros;
+- organizar projetos;
+- registrar informações;
+- trabalhar com arquivos Markdown;
+- futuramente trabalhar com áudio;
+- futuramente capturar conteúdo da web;
+- futuramente utilizar agentes de IA de forma nativa.
+
+A integração com agentes de IA é um diferencial arquitetural importante do Woil.
+
+Entretanto:
+
+NÃO comece construindo o agente.
+
+Primeiro construa a fundação sobre a qual o agente poderá trabalhar.
+
+==================================================
+4. PRINCÍPIOS FUNDAMENTAIS
+==================================================
+
+Os seguintes princípios são fundamentais:
+
+### Local-first
+
+O usuário deve possuir seus dados.
+
+O vault deve ser baseado em arquivos locais.
+
+### Markdown como fonte de verdade
+
+Notas devem existir como Markdown.
+
+Não transformar o banco de dados da aplicação na fonte primária do conhecimento.
+
+### Arquitetura extensível
+
+A aplicação deverá permitir posteriormente:
+
+- agentes;
+- MCP;
+- sincronização;
+- busca semântica;
+- plugins;
+- automações;
+- desktop;
+- outras integrações.
+
+Mas não implemente tudo agora.
+
+### Mobile-first
+
+O desenvolvimento inicial é Android.
+
+A tecnologia inicial definida para o projeto é:
+
+React Native + Expo.
+
+Desktop será tratado posteriormente como uma experiência de workspace.
+
+### UI separada da infraestrutura
+
+A interface não deve manipular diretamente o filesystem.
+
+Use camadas apropriadas.
+
+==================================================
+5. DIREÇÃO VISUAL
+==================================================
+
+Leia obrigatoriamente:
+
+/WOIL_DESIGN_SYSTEM.md
+
+Esse arquivo é a autoridade visual do projeto.
+
+A identidade visual é:
+
+Dark Knowledge Workspace.
+
+O Woil deve parecer:
+
+- profissional;
+- técnico;
+- calmo;
+- sofisticado;
+- profundo;
+- funcional;
+- humano.
+
+NÃO deve parecer:
+
+- dashboard genérico;
+- SaaS genérico;
+- aplicativo de IA;
+- cyberpunk;
+- interface neon;
+- template gerado por IA.
+
+A paleta oficial inclui:
+
+Background:
+#080B10
+
+Background Secondary:
+#0D141B
+
+Surface:
+#111A22
+
+Border:
+#1D2A33
+
+Text Primary:
+#E8F0F5
+
+Text Secondary:
+#8796A3
+
+Water:
+#39C6E8
+
+Oil:
+#C99A52
+
+Auxiliary:
+#38A89D
+
+Water é o accent principal.
+
+Oil é o accent secundário e deve ser utilizado com MUITA moderação.
+
+NÃO criar gradientes azul + dourado.
+
+NÃO transformar o conceito Water + Oil em decoração literal.
+
+==================================================
+6. NOMENCLATURA DO PRODUTO
+==================================================
+
+O projeto possui uma linguagem própria.
+
+Alguns nomes conceituais definidos:
+
+WATER:
+
+Surface
+Drops
+Flow
+Dive
+Streams
+Currents
+Ocean
+Echoes
+Catch
+
+OIL:
+
+Layers
+Marks
+Molds
+Essence
+Library
+Volumes
+Works
+Trace
+Reservoirs
+
+AGENTS:
+
+Catalysts
+Bridges
+Reactions
+
+Porém:
+
+CLAREZA SEMPRE VENCE A METÁFORA.
+
+Quando necessário, utilize:
+
+Nome conceitual + função.
+
+Exemplo:
+
+Dive — Search
+
+Ocean — Graph
+
+Catalysts — Agents
+
+Não force nomenclaturas poéticas onde elas prejudicarem a compreensão.
+
+==================================================
+7. OBJETIVO DESTE PROMPT
+==================================================
+
+Este prompt NÃO tem como objetivo implementar o Woil inteiro.
+
+O objetivo é criar a fundação correta.
+
+Queremos chegar a uma primeira versão funcional extremamente pequena.
+
+O usuário deve conseguir:
+
+1. iniciar o aplicativo;
+2. inicializar um vault local;
+3. criar uma nota;
+4. editar a nota;
+5. salvar a nota;
+6. fechar e reabrir a nota;
+7. visualizar a nota;
+8. excluir a nota;
+9. utilizar Markdown básico;
+10. utilizar Frontmatter;
+11. identificar tags;
+12. identificar Wikilinks;
+13. pesquisar notas localmente.
+
+Isso é suficiente para esta etapa.
+
+==================================================
+8. ARQUITETURA
+==================================================
+
+A arquitetura inicial deve seguir aproximadamente:
+
+UI
+↓
+Application Layer
+↓
+Domain Services
+↓
+Repositories / Infrastructure
+↓
+Filesystem
+↓
+Markdown
+
+Nunca faça:
+
+UI
+↓
+Filesystem diretamente
+
+A interface deve conversar com serviços.
+
+==================================================
+9. ESTRUTURA CONCEITUAL
+==================================================
+
+A fundação deverá possuir conceitos equivalentes a:
+
+Vault
+Note
+Markdown Parser
+Frontmatter Parser
+Wikilink Parser
+Tag Parser
+Index
+Search
+Repository
+
+Não implemente abstrações desnecessárias.
+
+A arquitetura deve ser simples, mas permitir evolução.
+
+==================================================
+10. VAULT
+==================================================
+
+O Vault é a fonte de verdade dos dados.
+
+O Vault deve trabalhar com:
+
+- arquivos Markdown;
+- diretórios;
+- assets;
+- metadata derivada.
+
+O filesystem não deve ficar espalhado pelo projeto inteiro.
+
+Crie uma camada responsável por operações como:
+
+listFiles
+readFile
+writeFile
+deleteFile
+fileExists
+createDirectory
+
+Os nomes podem ser adaptados à tecnologia utilizada.
+
+A ideia arquitetural é o que importa.
+
+==================================================
+11. NOTES
+==================================================
+
+Crie uma camada de serviço responsável por notas.
+
+Ela deverá permitir conceitos equivalentes a:
+
+createNote
+getNote
+updateNote
+deleteNote
+listNotes
+
+Uma nota deve possuir:
+
+- ID estável;
+- título;
+- conteúdo Markdown;
+- Frontmatter;
+- tags;
+- Wikilinks;
+- metadata;
+- timestamps.
+
+NÃO use o título como identificador interno definitivo.
+
+Use um identificador estável.
+
+==================================================
+12. MARKDOWN
+==================================================
+
+Crie a especificação inicial do formato de nota.
+
+Crie:
+
+/WOIL_MARKDOWN_SPEC.md
+
+A especificação deve definir pelo menos:
+
+- Frontmatter;
+- ID;
+- type;
+- created;
+- updated;
+- tags;
+- properties;
+- Wikilinks;
+- naming;
+- assets.
+
+Exemplo conceitual:
+
+---
+id: stable-id
+type: note
+title: Minha nota
+created: 2026-09-09
+updated: 2026-09-09
+tags:
+  - desenvolvimento
+  - woil
+---
+
+# Minha nota
+
+Conteúdo...
+
+[[Outra Nota]]
+
+O formato final deve ser definido tecnicamente de forma consistente.
+
+==================================================
+==================================================
+13. NOMENCLATURA OFICIAL DO WOIL
+==================================================
+
+A nomenclatura abaixo é parte da identidade oficial do produto.
+
+Os nomes não são sugestões.
+
+Quando uma funcionalidade correspondente for implementada, utilize
+preferencialmente o nome Woil definido abaixo na interface, navegação,
+documentação funcional e nomenclatura de componentes de produto.
+
+IMPORTANTE:
+
+O nome conceitual NÃO deve destruir a clareza.
+
+Quando necessário, utilizar:
+
+[NOME WOIL] — [FUNÇÃO]
+
+Exemplo:
+
+Dive — Search
+Ocean — Graph
+Catalysts — Agents
+
+Nunca invente um novo nome para uma funcionalidade que já possui
+um nome oficial nesta especificação sem antes justificar a mudança.
+
+--------------------------------------------------
+WATER — CONHECIMENTO FLUIDO
+--------------------------------------------------
+
+### Surface
+
+Representa:
+
+- entrada;
+- início;
+- visão geral;
+- ponto de chegada ao conhecimento.
+
+Função equivalente:
+Home / Dashboard / Start.
+
+--------------------------------------------------
+
+### Drops
+
+Representa:
+
+- notas;
+- ideias;
+- unidades individuais de conhecimento.
+
+Função equivalente:
+Notes.
+
+Uma nota individual pertence à categoria Drops.
+
+Exemplo de UI:
+
+Drops
+12 notes
+
+--------------------------------------------------
+
+### Flow
+
+Representa:
+
+- Daily Notes;
+- registro diário;
+- fluxo temporal do conhecimento.
+
+Função equivalente:
+Daily Notes.
+
+Exemplo:
+
+Flow
+Today
+
+--------------------------------------------------
+
+### Dive
+
+Representa:
+
+- busca;
+- exploração do Vault;
+- descoberta de conhecimento.
+
+Função equivalente:
+Search.
+
+Na interface pode aparecer como:
+
+Dive — Search
+
+--------------------------------------------------
+
+### Streams
+
+Representa:
+
+- links entre conteúdos;
+- Wikilinks;
+- conexões que partem de uma nota.
+
+Função equivalente:
+Links.
+
+--------------------------------------------------
+
+### Currents
+
+Representa:
+
+- backlinks;
+- relações que chegam até uma nota;
+- fluxo reverso de conhecimento.
+
+Função equivalente:
+Backlinks.
+
+--------------------------------------------------
+
+### Ocean
+
+Representa:
+
+- Graph;
+- visualização das relações do Vault;
+- mapa de conhecimento.
+
+Função equivalente:
+Graph View.
+
+Na interface pode aparecer como:
+
+Ocean — Graph
+
+O Ocean NÃO deve inicialmente tentar mostrar todo o Vault
+simultaneamente.
+
+A prioridade é legibilidade.
+
+--------------------------------------------------
+
+### Echoes
+
+Representa:
+
+- gravações de áudio;
+- memórias sonoras;
+- arquivos de áudio associados ao conhecimento.
+
+Função equivalente:
+Audio / Voice Notes.
+
+Uma gravação de áudio pode ser anexada a uma Drop.
+
+Transcrição automática é uma funcionalidade futura.
+
+--------------------------------------------------
+
+### Catch
+
+Representa:
+
+- captura de conteúdo externo;
+- Web Clipper;
+- entrada de informações vindas da web.
+
+Função equivalente:
+Web Clipper.
+
+A implementação completa é futura.
+
+--------------------------------------------------
+OIL — ESTRUTURA E ORGANIZAÇÃO
+--------------------------------------------------
+
+### Layers
+
+Representa:
+
+- Properties;
+- propriedades estruturadas;
+- informações que descrevem uma unidade de conhecimento.
+
+Função equivalente:
+Properties.
+
+--------------------------------------------------
+
+### Marks
+
+Representa:
+
+- Tags;
+- classificações;
+- marcações de conhecimento.
+
+Função equivalente:
+Tags.
+
+Exemplo:
+
+#development
+#woil
+#books
+
+--------------------------------------------------
+
+### Molds
+
+Representa:
+
+- Templates;
+- estruturas reutilizáveis para criação de conteúdo.
+
+Função equivalente:
+Templates.
+
+--------------------------------------------------
+
+### Essence
+
+Representa:
+
+- Metadata;
+- informações descritivas e estruturais sobre o conteúdo.
+
+Função equivalente:
+Metadata.
+
+--------------------------------------------------
+
+### Library
+
+Representa:
+
+- sistema de livros;
+- biblioteca pessoal;
+- organização de obras.
+
+Função equivalente:
+Books.
+
+Library é a área.
+
+--------------------------------------------------
+
+### Volumes
+
+Representa:
+
+- um livro individual dentro da Library;
+- informações;
+- avaliações;
+- anotações;
+- páginas;
+- marcações;
+- capa;
+- metadados.
+
+Função equivalente:
+Individual Book.
+
+Exemplo:
+
+Library
+    └── Volume
+
+--------------------------------------------------
+
+### Works
+
+Representa:
+
+- projetos;
+- trabalhos em desenvolvimento;
+- iniciativas organizadas no Vault.
+
+Função equivalente:
+Projects.
+
+--------------------------------------------------
+
+### Trace
+
+Representa:
+
+- histórico de um Work;
+- linha temporal;
+- evolução;
+- eventos;
+- mudanças;
+- marcos.
+
+Função equivalente:
+Project Timeline / History.
+
+Exemplo:
+
+Work
+    └── Trace
+
+--------------------------------------------------
+
+### Reservoirs
+
+Representa:
+
+- coleções estruturadas;
+- conjuntos de informação;
+- futuras Bases.
+
+Função equivalente:
+Bases / Structured Collections.
+
+IMPORTANTE:
+
+Reservoirs NÃO significa que o sistema deve implementar Bases completas
+nesta etapa.
+
+O conceito está definido para evolução futura.
+
+--------------------------------------------------
+CATALYSTS — AGENTES
+--------------------------------------------------
+
+### Catalysts
+
+Representa:
+
+- agentes de IA;
+- agentes que trabalham sobre o conhecimento do usuário;
+- automações inteligentes futuras.
+
+Função equivalente:
+AI Agents.
+
+O conceito de Catalyst existe porque o agente atua como um catalisador:
+ele transforma ou reorganiza conhecimento sem se tornar o proprietário
+desse conhecimento.
+
+--------------------------------------------------
+
+### Bridges
+
+Representa:
+
+- conexões entre o Woil e agentes ou sistemas externos;
+- integrações;
+- interfaces de comunicação.
+
+Função equivalente:
+External Agent Connections / MCP.
+
+Exemplos futuros:
+
+- Claude Code;
+- OpenCode;
+- Hermes;
+- outros agentes compatíveis.
+
+A implementação completa de Bridges NÃO faz parte deste prompt.
+
+--------------------------------------------------
+
+### Reactions
+
+Representa:
+
+- ações realizadas por um Catalyst;
+- resultados;
+- operações;
+- transformações executadas sobre o Vault.
+
+Função equivalente:
+Agent Actions / Results.
+
+Exemplo conceitual:
+
+Catalyst
+    ↓
+Reaction
+    ↓
+Vault change
+
+--------------------------------------------------
+14. MAPA OFICIAL DE FUNCIONALIDADES
+--------------------------------------------------
+
+O seguinte mapa deve ser considerado a referência rápida da
+nomenclatura do produto:
+
+WATER
+
+Surface        → Home / Start
+Drops          → Notes
+Flow           → Daily Notes
+Dive           → Search
+Streams        → Links / Wikilinks
+Currents       → Backlinks
+Ocean          → Graph
+Echoes         → Audio
+Catch          → Web Clipper
+
+
+OIL
+
+Layers         → Properties
+Marks          → Tags
+Molds          → Templates
+Essence        → Metadata
+Library        → Books
+Volumes        → Individual Books
+Works          → Projects
+Trace          → Project Timeline / History
+Reservoirs     → Bases / Structured Collections
+
+
+CATALYSTS
+
+Catalysts      → AI Agents
+Bridges        → External Agent Connections / MCP
+Reactions      → Agent Actions / Results
+
+
+--------------------------------------------------
+15. REGRA DE NOMENCLATURA
+--------------------------------------------------
+
+Ao criar qualquer nova funcionalidade, componente ou tela:
+
+1. Verifique se ela já possui um nome oficial nesta especificação.
+2. Se possuir, utilize o nome oficial.
+3. Se o nome puder gerar confusão para o usuário, utilize:
+   
+   Nome Woil — Nome funcional
+
+4. Não crie sinônimos desnecessários.
+5. Não altere nomes existentes apenas por preferência pessoal.
+6. Não introduza nomenclatura genérica de SaaS.
+7. Não utilize nomes conflitantes com a identidade Water + Oil.
+
+Exemplo CORRETO:
+
+Dive — Search
+
+Ocean — Graph
+
+Catalysts — Agents
+
+Exemplo INCORRETO:
+
+Smart Search
+
+AI Hub
+
+Knowledge Center
+
+Neural Workspace
+
+Magic Notes
+
+Esses nomes não fazem parte da identidade do Woil.
+
+--------------------------------------------------
+16. NOMES INTERNOS DE CÓDIGO
+--------------------------------------------------
+
+A nomenclatura de produto e a nomenclatura técnica podem ser
+diferentes quando isso melhorar a manutenção do código.
+
+Por exemplo:
+
+Drops pode possuir internamente:
+
+NotesScreen
+NoteService
+NoteRepository
+
+Isso é aceitável.
+
+O usuário, entretanto, deve enxergar:
+
+Drops
+
+ou:
+
+Drops — Notes
+
+Não force nomes conceituais em APIs, classes ou variáveis quando isso
+reduzir a clareza técnica.
+
+A regra é:
+
+Produto → nomenclatura Woil.
+
+Código → nomenclatura tecnicamente clara.
+
+--------------------------------------------------
+17. NOVAS FUNCIONALIDADES
+--------------------------------------------------
+
+Se uma funcionalidade futura não possuir nome definido:
+
+NÃO invente imediatamente um nome definitivo.
+
+Primeiro:
+
+1. identifique a função;
+2. determine em qual camada conceitual ela pertence;
+3. verifique se existe relação com Water, Oil ou Catalysts;
+4. proponha possíveis nomes;
+5. aguarde uma decisão caso o nome seja relevante para a identidade.
+
+Uma nova funcionalidade só deve receber um nome oficial depois de
+ser considerada parte da linguagem do produto.
+
+--------------------------------------------------
+18. REGRA DE COERÊNCIA
+--------------------------------------------------
+
+A nomenclatura deve contar a mesma história que o design.
+
+WATER:
+
+conhecimento que flui,
+conecta,
+chega,
+é descoberto.
+
+OIL:
+
+conhecimento que é estruturado,
+classificado,
+organizado,
+descrito.
+
+CATALYSTS:
+
+agentes que transformam,
+processam,
+conectam ou trabalham sobre o conhecimento.
+
+A interface deve refletir essa lógica sem transformar o produto em
+uma metáfora difícil de usar.
+
+CLAREZA > METÁFORA.
+
+IDENTIDADE > GENERICIDADE.
+
+USABILIDADE > POESIA.
+
+==================================================
+14. TAGS E PROPERTIES
+==================================================
+
+O parser deve conseguir identificar:
+
+Tags
+
+e
+
+Properties / Frontmatter.
+
+Não construir ainda um sistema completo de Bases.
+
+Não construir filtros avançados.
+
+Apenas estabeleça uma representação consistente que possa evoluir.
+
+==================================================
+15. INDEX
+==================================================
+
+Crie uma camada local de indexação.
+
+Inicialmente o índice deve permitir encontrar:
+
+- notas;
+- títulos;
+- conteúdo;
+- tags;
+- properties;
+- links.
+
+A primeira busca deve ser:
+
+LOCAL
+DETERMINÍSTICA
+SIMPLES
+
+NÃO implemente embeddings.
+
+NÃO implemente busca semântica.
+
+NÃO conecte uma API de IA para fazer busca.
+
+A arquitetura deve apenas permitir que busca semântica seja adicionada posteriormente.
+
+==================================================
+16. SEARCH
+==================================================
+
+A busca inicial deve procurar pelo menos:
+
+- título;
+- conteúdo;
+- tags;
+- propriedades relevantes.
+
+Priorize funcionamento confiável em vez de sofisticação.
+
+==================================================
+17. UI INICIAL
+==================================================
+
+A UI desta etapa deve ser propositalmente simples.
+
+Não tente criar todas as telas do produto.
+
+Precisamos apenas de uma pequena interface capaz de provar que a fundação funciona.
+
+Deve existir pelo menos:
+
+- tela inicial;
+- lista de notas;
+- criação de nota;
+- editor;
+- visualização;
+- busca;
+- exclusão.
+
+A interface deve seguir:
+
+/WOIL_DESIGN_SYSTEM.md
+
+Mesmo sendo uma UI inicial, ela já deve utilizar os Design Tokens.
+
+NÃO invente outra paleta.
+
+NÃO use roxo.
+
+NÃO use neon.
+
+NÃO adicione efeitos apenas para deixar a demo bonita.
+
+==================================================
+18. DESIGN TOKENS
+==================================================
+
+Centralize as cores e valores visuais.
+
+Não espalhe:
+
+#080B10
+#39C6E8
+etc.
+
+diretamente por dezenas de componentes.
+
+Crie tokens equivalentes a:
+
+colors.background.primary
+colors.background.secondary
+colors.surface
+colors.border
+colors.text.primary
+colors.text.secondary
+colors.water
+colors.oil
+colors.auxiliary
+
+A implementação exata depende da arquitetura escolhida.
+
+==================================================
+19. AGENTES — SOMENTE PREPARAÇÃO
+==================================================
+
+Não implementar agentes agora.
+
+Não implementar:
+
+- Claude;
+- OpenAI;
+- Hermes;
+- OpenCode;
+- MCP;
+- HTTP agent server;
+- remote agent;
+- local agent;
+- embedded agent completo.
+
+Porém, a arquitetura deve permitir isso futuramente.
+
+A direção futura é:
+
+UI
+↓
+Application
+↓
+Services
+↓
+Vault
+
+E futuramente:
+
+Agent
+↓
+Tools
+↓
+Services
+↓
+Vault
+
+NUNCA:
+
+Agent
+↓
+Filesystem diretamente
+
+O agente deverá utilizar contratos de ferramentas e serviços.
+
+==================================================
+20. FUTURO MODELO DE AGENTES
+==================================================
+
+A arquitetura deverá conseguir suportar futuramente três modos:
+
+### Embedded
+
+O aplicativo conversa diretamente com um provedor de IA.
+
+### Local
+
+Um agente roda no próprio dispositivo.
+
+### Remote
+
+Agentes externos podem acessar ferramentas do Woil.
+
+Todos devem utilizar o mesmo conceito de Tool Contract.
+
+Exemplos futuros:
+
+read_note
+write_note
+search
+list_backlinks
+graph_neighbors
+append_daily
+
+Esses são exemplos arquiteturais.
+
+NÃO implemente-os agora como sistema de agentes.
+
+==================================================
+21. CONCORRÊNCIA
+==================================================
+
+Tenha em mente que futuramente:
+
+- o usuário poderá editar uma nota;
+- um agente poderá modificar outra;
+- um processo externo poderá modificar arquivos;
+- o filesystem poderá mudar fora da aplicação.
+
+A fundação não precisa resolver completamente concorrência agora.
+
+Porém, não crie uma arquitetura que assuma que somente a UI poderá modificar os arquivos.
+
+Mantenha o acesso ao Vault isolado.
+
+==================================================
+22. TESTES
+==================================================
+
+Crie testes para as partes críticas.
+
+Prioridade:
+
+1. Vault;
+2. Parser;
+3. Notes;
+4. Wikilinks;
+5. Tags;
+6. Index;
+7. Search.
+
+Os testes devem provar comportamento real.
+
+Evite testes que apenas verificam detalhes internos sem valor.
+
+==================================================
+23. DOCUMENTAÇÃO
+==================================================
+
+Além de:
+
+/WOIL_MARKDOWN_SPEC.md
+
+crie:
+
+/WOIL_ARCHITECTURE.md
+
+Documente:
+
+- camadas;
+- responsabilidades;
+- fluxo de dados;
+- Vault;
+- Notes;
+- Parser;
+- Index;
+- Search;
+- decisões importantes;
+- pontos preparados para expansão futura.
+
+Não documente funcionalidades que não existem como se já estivessem implementadas.
+
+==================================================
+24. O QUE NÃO FAZER
+==================================================
+
+NÃO implementar nesta etapa:
+
+- Canvas;
+- Slides;
+- Publish;
+- Plugins;
+- Automations;
+- Syncthing;
+- Git integrado;
+- MCP completo;
+- Agents completos;
+- embeddings;
+- semantic search;
+- transcription;
+- grammar system;
+- Web Clipper completo;
+- Books completos;
+- Timeline completa;
+- Bases completas;
+- Graph avançado;
+- desktop completo.
+
+Não antecipar funcionalidades apenas porque elas estão no roadmap.
+
+==================================================
+25. TECNOLOGIA
+==================================================
+
+A prioridade inicial é:
+
+React Native + Expo
+Android-first.
+
+Antes de instalar ou adicionar dependências:
+
+- verificar o projeto;
+- verificar package.json;
+- verificar versões;
+- evitar dependências desnecessárias;
+- escolher soluções compatíveis com Expo;
+- não adicionar bibliotecas apenas por preferência pessoal.
+
+Se uma decisão técnica importante não estiver definida:
+
+analise as alternativas,
+explique o impacto,
+e escolha a opção mais simples que preserve a arquitetura.
+
+Não overengineer.
+
+==================================================
+26. FILOSOFIA DE IMPLEMENTAÇÃO
+==================================================
+
+Construa pouco.
+
+Mas construa direito.
+
+Prefira:
+
+- código simples;
+- responsabilidades claras;
+- interfaces pequenas;
+- baixo acoplamento;
+- testes;
+- documentação;
+- extensibilidade real.
+
+Evite:
+
+- abstrações vazias;
+- frameworks desnecessários;
+- padrões implementados apenas para parecer arquitetura;
+- código duplicado;
+- lógica de negócio dentro da UI;
+- filesystem espalhado pelo projeto.
+
+==================================================
+27. PROCESSO DE EXECUÇÃO
+==================================================
+
+Antes de alterar:
+
+FASE 1 — CONTEXTO
+
+Leia /prompts.
+
+Leia /WOIL_DESIGN_SYSTEM.md.
+
+Inspecione o projeto.
+
+FASE 2 — DIAGNÓSTICO
+
+Informe:
+
+- stack atual;
+- estrutura atual;
+- o que já existe;
+- o que está faltando;
+- possíveis conflitos;
+- riscos.
+
+FASE 3 — PLANEJAMENTO
+
+Defina uma implementação pequena para esta etapa.
+
+Não implemente o roadmap inteiro.
+
+FASE 4 — IMPLEMENTAÇÃO
+
+Implemente a fundação.
+
+FASE 5 — TESTES
+
+Execute os testes.
+
+Corrija problemas reais.
+
+FASE 6 — VALIDAÇÃO
+
+Confirme:
+
+- app inicia;
+- vault funciona;
+- nota pode ser criada;
+- nota vira Markdown;
+- Frontmatter funciona;
+- nota pode ser reaberta;
+- nota pode ser editada;
+- nota pode ser excluída;
+- Wikilinks são identificados;
+- tags são identificadas;
+- busca local funciona.
+
+==================================================
+28. CRITÉRIOS DE ACEITAÇÃO
+==================================================
+
+Esta etapa só será considerada concluída se:
+
+[ ] O projeto inicia no Android.
+
+[ ] O Vault local pode ser inicializado.
+
+[ ] Uma nota pode ser criada.
+
+[ ] A nota é persistida como Markdown.
+
+[ ] A nota possui Frontmatter válido.
+
+[ ] A nota possui ID estável.
+
+[ ] A nota pode ser reaberta.
+
+[ ] A nota pode ser editada.
+
+[ ] A nota pode ser excluída.
+
+[ ] Tags são reconhecidas.
+
+[ ] Wikilinks são reconhecidos.
+
+[ ] Backlinks podem ser derivados das relações.
+
+[ ] Busca textual local funciona.
+
+[ ] A UI utiliza os Design Tokens do Woil.
+
+[ ] Não existe dependência de IA para o funcionamento básico.
+
+[ ] O aplicativo funciona sem internet para as operações locais fundamentais.
+
+[ ] Existem testes para as partes críticas.
+
+[ ] A arquitetura está documentada.
+
+==================================================
+29. RELATÓRIO FINAL
+==================================================
+
+Quando terminar, NÃO pule automaticamente para a próxima funcionalidade.
+
+Entregue um relatório contendo:
+
+### Estrutura
+
+Quais diretórios e arquivos foram criados.
+
+### Alterações
+
+Quais arquivos foram modificados.
+
+### Arquitetura
+
+Como os dados percorrem o sistema.
+
+### Vault
+
+Como os arquivos são armazenados.
+
+### Markdown
+
+Como o formato foi definido.
+
+### Parser
+
+O que é reconhecido.
+
+### Search
+
+Como a busca funciona.
+
+### UI
+
+Quais telas foram criadas.
+
+### Testes
+
+Quais testes foram executados e seus resultados.
+
+### Dependências
+
+Quais dependências foram adicionadas e por quê.
+
+### Decisões
+
+Quais decisões técnicas foram tomadas.
+
+### Problemas
+
+Quais problemas foram encontrados.
+
+### Pendências
+
+O que ainda falta.
+
+### Próximo passo
+
+Sugira o próximo passo APENAS.
+
+Não o implemente automaticamente.
+
+==================================================
+30. REGRA ABSOLUTA
+==================================================
+
+Não tente provar que você consegue construir o Woil inteiro.
+
+Prove que a fundação do Woil funciona.
+
+A primeira vitória do projeto é simples:
+
+Um usuário cria uma nota no celular.
+
+Essa nota vira um arquivo Markdown real.
+
+Ela continua existindo depois que o aplicativo fecha.
+
+O Woil consegue entendê-la.
+
+E o sistema consegue encontrá-la novamente.
+
+Esse é o primeiro tijolo.
+
+Construa esse tijolo muito bem.
+
+==================================================
+
+FINAL:
+
+Antes de começar a escrever código:
+
+1. leia /prompts;
+2. leia /WOIL_DESIGN_SYSTEM.md;
+3. inspecione o projeto;
+4. explique o diagnóstico;
+5. apresente o plano;
+6. então implemente.
+
+Não pule o diagnóstico.
+
+Não invente funcionalidades.
+
+Não implemente o futuro.
+
+**Construa pouco, mas construa direito.**

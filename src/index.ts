@@ -1,0 +1,8 @@
+export { default as App } from './App';
+export * from './domain/Note';
+export * from './domain/Index';
+export * from './domain/NoteRepository';
+export * from './infrastructure/FileSystem';
+export * from './infrastructure/FileNoteRepository';
+export * from './application/NoteService';
+export * from './tokens/colors';
