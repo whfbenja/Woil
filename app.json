@@ -21,6 +21,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2d868ad6-0474-4d17-8040-417ac92fa277"
+      }
+    },
+    "owner": "whfbenjas-team"
   }
 }
