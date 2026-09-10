@@ -53,13 +53,15 @@ step "3 expo-install-check" npx expo install --check
 step "4 tsc" npx tsc --noEmit
 
 # 5. Testes unitarios (dominio + application + guardas de UI)
-step "5 jest" npx jest --ci --silent
+# --runInBand: o Termux/Android tem ~3.5GB RAM e o jest em paralelo
+# (workers) estoura o heap e derruba a sessão. Serial é obrigatório aqui.
+step "5 jest" env NODE_OPTIONS="--max-old-space-size=1024" npx jest --ci --runInBand --silent
 
 # 5b. Cobertura mínima das suites críticas: garante que os testes de
 #     guarda não foram silenciosamente removidos/renomeados.
 step "5b jest-suites" bash -c '
   out=$(npx jest --listTests 2>/dev/null)
-  for need in index parsers designSystem noteService; do
+  for need in index parsers designSystem noteService backlinks book pageMarkers bookService bookSearch; do
     echo "$out" | grep -q "$need" || { echo "suite ausente: $need"; exit 1; }
   done
 '
@@ -80,6 +82,30 @@ step "5c fs-legacy-import" bash -c '
 # 5d. Guarda de design system: nenhum hexadecimal cru fora de tokens.
 step "5d no-raw-hex" bash -c '
   offenders=$(grep -nE "#[0-9a-fA-F]{3,8}\b" src/ui/*.tsx src/App.tsx 2>/dev/null | grep -vE "^\S+:[0-9]+:\s*(//|\*|/\*)" || true)
+  if [ -n "$offenders" ]; then echo "$offenders"; exit 1; fi
+'
+
+# 5e. Guarda de rede: o app é local-first. Chamada de rede só é permitida
+#     nos pontos intencionais e documentados (Google Books na Library e o
+#     CDN do D3 no grafo). Qualquer outro fetch/URL em src/ é regressão.
+step "5e network-allowlist" bash -c '
+  allowed="src/infrastructure/BookSearchClient.ts src/ui/OceanGraph.tsx"
+  offenders=""
+  for f in $(find src -name "*.ts" -o -name "*.tsx"); do
+    hits=$(grep -nE "\b(fetch|XMLHttpRequest|axios)\s*\(|https?://" "$f" | grep -viE "placeholder[=:]|accessibilityLabel" || true)
+    if [ -n "$hits" ]; then
+      case " $allowed " in
+        *" $f "*) ;;
+        *) offenders="$offenders $f" ;;
+      esac
+    fi
+  done
+  if [ -n "$offenders" ]; then echo "rede fora da allowlist:$offenders"; exit 1; fi
+'
+
+# 5f. Guarda de segredos: nenhuma chave/token hardcoded no código-fonte.
+step "5f no-hardcoded-secrets" bash -c '
+  offenders=$(grep -rniE "(api[_-]?key|secret|password|bearer)[[:space:]]*[:=][[:space:]]*[\"'"'"'][^\"'"'"']{8,}" src 2>/dev/null | grep -viE "placeholder|accessibilityLabel" || true)
   if [ -n "$offenders" ]; then echo "$offenders"; exit 1; fi
 '
 
