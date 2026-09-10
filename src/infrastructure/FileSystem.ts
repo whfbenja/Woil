@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 export interface FileSystemOperations {
   listFiles(dir: string): Promise<string[]>;

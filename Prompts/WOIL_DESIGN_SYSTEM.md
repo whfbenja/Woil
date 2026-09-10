@@ -483,3 +483,83 @@ profunda o suficiente para explorar.**
 
 > **Construa uma interface que pareça uma ferramenta, não uma
 > demonstração de efeitos.**
+
+------------------------------------------------------------------------
+
+# 24. Especificação de componentes (v1.1)
+
+Specs numéricas derivadas dos tokens de `src/tokens/layout.ts`. Todo
+componente vive em `src/ui/` e importa cores de `src/tokens/colors.ts` e
+espaçamentos/raios de `src/tokens/layout.ts`. Nunca usar hex direto.
+
+## Tokens de layout
+
+``` ts
+spacing: { xs:4, sm:8, md:12, lg:16, xl:24, xxl:32 }
+radius:  { sm:8, md:12, lg:16, pill:999 }
+sizes:   { touchTarget:48, buttonHeight:48, inputHeight:48,
+           bottomNavHeight:64, headerHeight:56, fab:56 }
+```
+
+## Button
+
+- Primário: fundo `water`, texto `background.primary`, raio `md` (12),
+  altura `buttonHeight` (48), padding horizontal `xl` (24).
+- Secundário: fundo `surface`, borda 1px `border`, texto `text.primary`
+  — sem preenchimento sólido (hierarquia visual inferior ao primário).
+- Estados: `pressed` → opacidade 0.75; `disabled` → opacidade 0.4.
+- Largura por conteúdo (não estica a tela). `fullWidth` só quando
+  explicitamente pedido.
+
+## Input de texto
+
+- Fundo `surface`, borda 1px `border`, raio `md`, altura mínima
+  `inputHeight` (48), padding horizontal `md`.
+- Foco: borda vira `water` (1px) — sem sombra/glow.
+- Placeholder em `text.secondary`; texto em `text.primary`.
+- Multiline: min-height 140, `textAlignVertical: top`.
+- Label opcional acima, em `meta`/`text.secondary`.
+
+## Card (item de lista)
+
+- Fundo `surface`, borda 1px `border`, raio `md` (12), padding `lg`
+  (16), margem inferior `md` (12).
+- Título: `heading` (20/600) em `text.primary`, 1 linha.
+- Preview: `body` em `text.secondary`, até 2 linhas.
+- Tags: chip com fundo `background.secondary`, borda `border`, raio
+  `sm`, texto `meta` em `oil` (Oil com moderação: só metadata).
+- Rodapé: tags à esquerda, data (`meta`/`text.secondary`) à direita.
+
+## Header de tela
+
+- Altura mínima `headerHeight` (56), fundo igual ao app
+  (`background.primary`) — sem elevação forte, sem sombra.
+- Título à esquerda (`title`, 24/600, `text.primary`), subtítulo
+  opcional em `meta`/`text.secondary`.
+- Ações à direita como `IconButton` 48×48, glifo `text.secondary`
+  (ativo/foco em `water`).
+
+## Bottom Navigation
+
+- Altura `bottomNavHeight` (64), fundo `background.secondary`, borda
+  superior 1px `border`.
+- 4 itens fixos: Surface, Drops, Dive, Library + item "Mais".
+- Item ativo: ícone e label em `water`; inativo em `text.secondary`.
+- Botão central de ação (+): círculo `fab` (56), fundo `water`, glifo
+  `background.primary`, posicionado entre Dive e Library.
+- Alvos de toque ≥ 48×48.
+
+## EmptyState
+
+- Centralizado, glifo discreto em `border`, título `heading` em
+  `text.primary`, mensagem `body` em `text.secondary` (centralizada).
+- Nunca deixar a tela em branco: sempre título + mensagem acionável.
+
+## Regras transversais
+
+- Todo interativo considera: default, pressed, focused, selected,
+  disabled (doc §18).
+- Alvos de toque ≥ 48dp (doc §19).
+- Componentes não espalham hexadecimais — só tokens (doc §20).
+- Water para interação/foco/ação primária; Oil apenas em metadata,
+  nunca em gradiente com Water (doc §4).

@@ -1,0 +1,50 @@
+CONTEXTO
+O Woil é um app PKM local-first (React Native + Expo, Android). A camada de domínio (Note, NoteService, FileNoteRepository, parsers) já está implementada e testada (npx jest deve passar). O problema atual está na camada de UI: funcionalmente incompleta e visualmente muito distante do design system planejado.
+
+Trabalhe em fases, nesta ordem, sem pular etapas. Ao final de cada fase, rode os testes existentes e confirme que nada quebrou antes de seguir para a próxima.
+
+---
+
+FASE 1 — DIAGNÓSTICO (não altere nada ainda)
+1. Leia Prompts/WOIL_DESIGN_SYSTEM.md e me diga o que já está especificado: só paleta/tipografia, ou também componentes com specs (padding, raio, estados)?
+2. Na tela de criação/edição de nota, identifique por que os TextInput de título e conteúdo não aceitam digitação, e por que os botões Salvar/Cancelar não executam ação. Aponte a causa exata (state não ligado, onPress ausente, etc.) antes de corrigir.
+3. Rode `npx jest` e reporte o resultado.
+
+Me reporte essas 3 respostas antes de prosseguir para a Fase 2.
+
+---
+
+FASE 2 — CORRIGIR FUNCIONALIDADE (prioridade máxima, sem estilização ainda)
+- Ligue os TextInput de título e conteúdo a estado local (useState), com value e onChangeText corretos.
+- Implemente onPress do botão Salvar chamando NoteService (createNote ou updateNote conforme o contexto) com os valores do estado atual, e navegando de volta após sucesso.
+- Implemente onPress do botão Cancelar, descartando alterações e voltando à tela anterior sem persistir.
+- Não altere layout/estilo nesta fase — o objetivo é só função.
+
+---
+
+FASE 3 — COMPLETAR O DESIGN SYSTEM
+Se Prompts/WOIL_DESIGN_SYSTEM.md não tiver specs de componentes ainda, adicione, usando os tokens existentes em src/tokens/colors.ts (fundo #080B10, superfícies #111A22, bordas #1D2A33, texto principal #E8F0F5, texto secundário #8796A3, Water #39C6E8, Oil #C99A52):
+
+- Bottom Navigation: 4 itens fixos (Surface, Drops, Dive, Library) + botão central de ação (+) destacado em Water, mais um item "Mais" para acessar Ocean/Works/Catalysts/Lab. Ícone ativo em Water, inativo em texto secundário.
+- Card de item de lista (nota/livro): fundo em superfície (#111A22), raio de borda consistente (sugestão: 12px), padding interno generoso, título em texto principal, metadado (data, tag) em texto secundário menor.
+- Botão primário: fundo Water, texto escuro/contrastante, raio de borda igual aos cards, altura confortável para toque (mín. 48dp).
+- Botão secundário (Cancelar): outline ou fundo de superfície, sem preenchimento sólido, para diferenciar hierarquia visual do primário.
+- Input de texto: fundo de superfície, borda sutil, borda destacada em Water quando focado, placeholder em texto secundário.
+- Header de tela: título à esquerda, ações à direita (ex: busca, menu), fundo igual ao app (sem elevação forte).
+
+---
+
+FASE 4 — APLICAR NA TELA DROPS (lista de notas)
+Reconstrua a tela atual (hoje é só texto solto: "Woil — Drops", campo de busca, botão "Nova Nota", nada mais) para:
+- Usar o Header definido na Fase 3
+- Listar as notas existentes como Cards (Fase 3), com título, tags e data de atualização
+- Exibir estado vazio com mensagem amigável quando não houver notas (não deixar tela em branco)
+- Adicionar a Bottom Navigation definida na Fase 3
+- Botão "Nova Nota" deve seguir o estilo de botão primário, não ocupar a largura inteira como está hoje (comparar com o mockup de referência anexado)
+
+---
+
+RESTRIÇÕES IMPORTANTES
+- Não toque na camada de domínio (Note, NoteService, FileNoteRepository) — o problema é só em UI.
+- Não implemente Catalysts, Library ou Ocean ainda — foco é Drops funcional e bonita primeiro.
+- Ao final, rode npx jest novamente e confirme que os testes continuam passando.

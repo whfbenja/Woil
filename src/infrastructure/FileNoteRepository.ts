@@ -1,5 +1,5 @@
 import * as crypto from 'expo-crypto';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Note, NoteCreateInput, NoteUpdateInput } from '../domain/Note';
 import { NoteRepository } from '../domain/NoteRepository';
 import { parseFrontmatter, serializeFrontmatter } from '../domain/parsers/FrontmatterParser';
