@@ -73,6 +73,7 @@ export class FileNoteRepository implements NoteRepository {
     const now = new Date().toISOString();
     const merged = {
       ...existing.frontmatter,
+      ...(input.frontmatter ?? {}),
       title: input.title ?? existing.title,
       updated: now,
     };

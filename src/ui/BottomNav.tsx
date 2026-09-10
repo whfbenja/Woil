@@ -17,7 +17,7 @@ export const NAV_ITEMS: NavItem[] = [
   { key: 'drops', label: 'Drops', icon: 'water-outline' },
   { key: 'dive', label: 'Dive', icon: 'search-outline' },
   { key: 'ocean', label: 'Ocean', icon: 'git-network-outline' },
-  { key: 'more', label: 'Mais', icon: 'ellipsis-horizontal' },
+  { key: 'library', label: 'Library', icon: 'library-outline' },
 ];
 
 interface BottomNavProps {
@@ -27,7 +27,7 @@ interface BottomNavProps {
 }
 
 export function BottomNav({ activeKey, onSelect, onActionPress }: BottomNavProps) {
-  // Botão central (+) inserido entre Dive e Library (posição 3 de 6)
+  // Botão central (+) entre o 3º e o 4º item da barra.
   const before = NAV_ITEMS.slice(0, 3);
   const after = NAV_ITEMS.slice(3);
 

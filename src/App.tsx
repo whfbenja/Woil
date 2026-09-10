@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -16,9 +16,11 @@ import { StatusBar } from 'expo-status-bar';
 import { colors } from './tokens/colors';
 import { radius, spacing, typography } from './tokens/layout';
 import { FileNoteRepository } from './infrastructure/FileNoteRepository';
+import { BookSearchClient } from './infrastructure/BookSearchClient';
 import { NoteIndex } from './domain/Index';
 import { BacklinkIndex } from './domain/BacklinkIndex';
 import { NoteService } from './application/NoteService';
+import { BookService } from './application/BookService';
 import { Note } from './domain/Note';
 import {
   BacklinkList,
@@ -26,6 +28,7 @@ import {
   Button,
   Card,
   EmptyState,
+  LibraryView,
   NoteList,
   OceanGraph,
   ScreenHeader,
@@ -39,9 +42,11 @@ const repository = new FileNoteRepository();
 const index = new NoteIndex();
 const backlinkIndex = new BacklinkIndex();
 const noteService = new NoteService(repository, index, backlinkIndex);
+const bookService = new BookService(noteService);
+const bookSearchClient = new BookSearchClient();
 
 type SheetMode = 'closed' | 'create' | 'edit';
-type Tab = 'drops' | 'ocean';
+type Tab = 'drops' | 'ocean' | 'library';
 type OceanMode = 'graph' | 'list';
 
 const PALETTE: OceanPalette = {
@@ -89,6 +94,7 @@ export default function App() {
   const [graphEdges, setGraphEdges] = useState<OceanEdge[]>([]);
   const [linkCounts, setLinkCounts] = useState<Record<string, number>>({});
   const [currentBacklinks, setCurrentBacklinks] = useState<Note[]>([]);
+  const libraryCreateRef = useRef<(() => void) | null>(null);
 
   const loadNotes = useCallback(async () => {
     setLoading(true);
@@ -337,7 +343,17 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="light" />
 
-      {tab === 'drops' ? renderDrops() : renderOcean()}
+      {tab === 'drops' ? renderDrops() : null}
+      {tab === 'ocean' ? renderOcean() : null}
+      {tab === 'library' ? (
+        <LibraryView
+          bookService={bookService}
+          searchClient={bookSearchClient}
+          registerCreate={(handler) => {
+            libraryCreateRef.current = handler;
+          }}
+        />
+      ) : null}
 
       {tab === 'drops' ? (
         <View style={styles.footer}>
@@ -348,9 +364,15 @@ export default function App() {
       <BottomNav
         activeKey={tab}
         onSelect={(key) => {
-          if (key === 'drops' || key === 'ocean') setTab(key);
+          if (key === 'drops' || key === 'ocean' || key === 'library') setTab(key);
         }}
-        onActionPress={openCreate}
+        onActionPress={() => {
+          if (tab === 'library') {
+            libraryCreateRef.current?.();
+          } else {
+            openCreate();
+          }
+        }}
       />
 
       <Modal
