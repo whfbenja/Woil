@@ -16,7 +16,7 @@ export const NAV_ITEMS: NavItem[] = [
   { key: 'surface', label: 'Surface', icon: 'home-outline' },
   { key: 'drops', label: 'Drops', icon: 'water-outline' },
   { key: 'dive', label: 'Dive', icon: 'search-outline' },
-  { key: 'library', label: 'Library', icon: 'library-outline' },
+  { key: 'ocean', label: 'Ocean', icon: 'git-network-outline' },
   { key: 'more', label: 'Mais', icon: 'ellipsis-horizontal' },
 ];
 

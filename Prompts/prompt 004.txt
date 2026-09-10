@@ -1,0 +1,45 @@
+CONTEXTO
+O Woil já tem: domínio de notas estável e testado (NoteService, FileNoteRepository, parsers), Fase 4 concluída (tela Drops funcional com design system aplicado). O parser já extrai wikilinks ([[Nota]]) das notas, mas ainda não existe um índice de backlinks nem visualização de grafo.
+
+Trabalhe em fases. Rode npx jest ao final de cada fase antes de seguir.
+
+---
+
+FASE 1 — DIAGNÓSTICO
+1. Confirme onde o parser de wikilinks já extrai [[links]] hoje (arquivo/função) e se esse dado já está armazenado em algum lugar (nota tem uma lista de "outgoing links"?).
+2. Confirme se existe algum índice em memória além do de busca por texto — se não houver estrutura para backlinks (quem me referencia), essa é a lacuna principal a preencher.
+3. Reporte isso antes de prosseguir.
+
+---
+
+FASE 2 — DOMÍNIO: ÍNDICE DE BACKLINKS
+- Implemente um índice de backlinks em memória: para cada nota, uma lista de quais outras notas a referenciam (o inverso dos outgoing links já extraídos pelo parser).
+- Esse índice deve ser reconstruído ao carregar o vault e atualizado incrementalmente quando uma nota é criada/editada/salva (não precisa reconstrução completa a cada save).
+- Exponha em NoteService um método tipo getBacklinks(noteId): Note[] e getOutgoingLinks(noteId): Note[].
+- Escreva testes cobrindo: nota A linka nota B → B aparece nos backlinks de A corretamente; nota deletada é removida do índice sem quebrar.
+
+---
+
+FASE 3 — UI: BACKLINKS NA TELA DE NOTA
+- Na tela de visualização/edição de nota (Drops), adicione uma seção "Backlinks" abaixo do conteúdo, seguindo os componentes do design system já estabelecido (Card, texto secundário para contagem).
+- Liste as notas que referenciam a nota atual, cada uma navegável (tap leva até a nota referenciada).
+- Se não houver backlinks, mostre estado vazio discreto ("Nenhuma nota referencia esta ainda"), sem quebrar layout.
+
+---
+
+FASE 4 — TELA OCEAN (GRAFO)
+- Crie a tela Ocean usando WebView + D3.js force simulation (conforme decidido na arquitetura — não tente renderizar o grafo com componentes nativos RN).
+- Nós = notas, coloridos por tipo (Nota = Water #39C6E8, Projeto = Oil #C99A52, Livro = usar uma cor adicional consistente com a paleta, Tag = outra cor de suporte). Use a paleta de src/tokens/colors.ts.
+- Arestas = links extraídos do índice de backlinks/outgoing links.
+- Nó central maior = nota "Woil" ou nota raiz do vault, se existir; caso contrário, apenas renderize o grafo sem nó central fixo.
+- Toque em um nó deve navegar até a nota correspondente.
+- Adicione toggle "Grafo / Listagem" no topo — modo Listagem é uma lista simples de notas com contagem de links (fallback leve, sem D3, útil como visualização alternativa ou se o WebView falhar).
+- Siga o Header e Bottom Navigation já definidos no design system.
+- Ponto de atenção: teste com vault pequeno (poucas notas) e não otimize performance para milhares de nós agora — isso é problema de escala futura, não do MVP.
+
+---
+
+RESTRIÇÕES
+- Não implemente Catalysts, Library ou edição avançada de propriedades ainda.
+- Não altere a estrutura de arquivos do vault (.md) para suportar isso — backlinks devem ser derivados dos wikilinks já existentes no conteúdo, não um campo novo de frontmatter.
+- Ao final, rode npx jest e confirme que os testes anteriores (incluindo os de Fase 2 desta rodada) passam.

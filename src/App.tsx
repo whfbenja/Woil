@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -13,18 +14,45 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { colors } from './tokens/colors';
-import { radius, sizes, spacing, typography } from './tokens/layout';
+import { radius, spacing, typography } from './tokens/layout';
 import { FileNoteRepository } from './infrastructure/FileNoteRepository';
 import { NoteIndex } from './domain/Index';
+import { BacklinkIndex } from './domain/BacklinkIndex';
 import { NoteService } from './application/NoteService';
 import { Note } from './domain/Note';
-import { BottomNav, Button, Card, EmptyState, ScreenHeader, WTextInput } from './ui';
+import {
+  BacklinkList,
+  BottomNav,
+  Button,
+  Card,
+  EmptyState,
+  NoteList,
+  OceanGraph,
+  ScreenHeader,
+  WTextInput,
+  OceanEdge,
+  OceanNode,
+  OceanPalette,
+} from './ui';
 
 const repository = new FileNoteRepository();
 const index = new NoteIndex();
-const noteService = new NoteService(repository, index);
+const backlinkIndex = new BacklinkIndex();
+const noteService = new NoteService(repository, index, backlinkIndex);
 
 type SheetMode = 'closed' | 'create' | 'edit';
+type Tab = 'drops' | 'ocean';
+type OceanMode = 'graph' | 'list';
+
+const PALETTE: OceanPalette = {
+  bg: colors.background.primary,
+  border: colors.border,
+  text: colors.text.secondary,
+  note: colors.water,
+  project: colors.oil,
+  book: colors.book,
+  tag: colors.auxiliary,
+};
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -32,24 +60,43 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+function previewOf(note: Note): string {
+  return note.content.replace(/[#*_`>\-]/g, '').trim().slice(0, 160);
+}
+
+function typeOf(note: Note): string {
+  const tags = note.tags.map((t) => t.toLowerCase());
+  if (tags.includes('projeto') || tags.includes('project')) return 'project';
+  if (tags.includes('livro') || tags.includes('book')) return 'book';
+  if (tags.includes('tag')) return 'tag';
+  return 'note';
+}
+
 export default function App() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
+  const [tab, setTab] = useState<Tab>('drops');
   const [sheetMode, setSheetMode] = useState<SheetMode>('closed');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState('');
   const [draftContent, setDraftContent] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const [oceanMode, setOceanMode] = useState<OceanMode>('graph');
+  const [graphNodes, setGraphNodes] = useState<OceanNode[]>([]);
+  const [graphEdges, setGraphEdges] = useState<OceanEdge[]>([]);
+  const [linkCounts, setLinkCounts] = useState<Record<string, number>>({});
+  const [currentBacklinks, setCurrentBacklinks] = useState<Note[]>([]);
+
   const loadNotes = useCallback(async () => {
     setLoading(true);
     try {
       const all = await noteService.listNotes();
       all.sort((a, b) => (a.metadata.updated < b.metadata.updated ? 1 : -1));
+      noteService.indexNotes(all);
       setNotes(all);
-      for (const n of all) index.indexNote(n);
     } catch (e) {
       Alert.alert('Erro', 'Não foi possível carregar os Drops.');
     } finally {
@@ -61,29 +108,55 @@ export default function App() {
     loadNotes();
   }, [loadNotes]);
 
-  const runSearch = useCallback(async (text: string) => {
-    setQuery(text);
-    if (!text.trim()) {
-      await loadNotes();
-      return;
+  const refreshGraph = useCallback(async () => {
+    const { nodes, edges } = await noteService.getGraph();
+    setGraphNodes(
+      nodes.map((n) => ({ id: n.id, title: n.title, type: typeOf(n) }))
+    );
+    setGraphEdges(edges);
+
+    const counts: Record<string, number> = {};
+    for (const note of nodes) {
+      const outgoing = await noteService.getOutgoingLinks(note.id);
+      const backlinks = await noteService.getBacklinks(note.id);
+      counts[note.id] = outgoing.length + backlinks.length;
     }
-    const found = await noteService.search(text);
-    setNotes(found);
-  }, [loadNotes]);
+    setLinkCounts(counts);
+  }, []);
+
+  useEffect(() => {
+    if (tab === 'ocean') refreshGraph();
+  }, [tab, refreshGraph]);
+
+  const runSearch = useCallback(
+    async (text: string) => {
+      setQuery(text);
+      if (!text.trim()) {
+        await loadNotes();
+        return;
+      }
+      const found = await noteService.search(text);
+      setNotes(found);
+    },
+    [loadNotes]
+  );
 
   const openCreate = () => {
     setDraftTitle('');
     setDraftContent('');
     setEditingId(null);
+    setCurrentBacklinks([]);
     setSheetMode('create');
   };
 
-  const openEdit = (note: Note) => {
+  const openEdit = useCallback(async (note: Note) => {
     setDraftTitle(note.title);
     setDraftContent(note.content);
     setEditingId(note.id);
     setSheetMode('edit');
-  };
+    const links = await noteService.getBacklinks(note.id);
+    setCurrentBacklinks(links);
+  }, []);
 
   const closeSheet = () => {
     if (saving) return;
@@ -91,6 +164,7 @@ export default function App() {
     setEditingId(null);
     setDraftTitle('');
     setDraftContent('');
+    setCurrentBacklinks([]);
   };
 
   const handleSave = async () => {
@@ -116,6 +190,7 @@ export default function App() {
       setEditingId(null);
       setDraftTitle('');
       setDraftContent('');
+      setCurrentBacklinks([]);
     } catch (e) {
       Alert.alert('Erro', 'Não foi possível salvar o Drop.');
     } finally {
@@ -132,6 +207,7 @@ export default function App() {
         onPress: async () => {
           await noteService.deleteNote(note.id);
           await loadNotes();
+          if (tab === 'ocean') refreshGraph();
         },
       },
     ]);
@@ -146,7 +222,7 @@ export default function App() {
   const renderItem = ({ item }: { item: Note }) => (
     <Card
       title={item.title}
-      preview={item.content.replace(/[#*_`>\-]/g, '').trim().slice(0, 160)}
+      preview={previewOf(item)}
       tags={item.tags}
       meta={[formatDate(item.metadata.updated)]}
       onPress={() => openEdit(item)}
@@ -167,9 +243,28 @@ export default function App() {
     },
   ];
 
-  return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
+  const oceanActions = [
+    {
+      icon: (oceanMode === 'graph' ? 'list-outline' : 'git-network-outline') as
+        | 'list-outline'
+        | 'git-network-outline',
+      accessibilityLabel: oceanMode === 'graph' ? 'Ver como lista' : 'Ver como grafo',
+      onPress: () => setOceanMode((m) => (m === 'graph' ? 'list' : 'graph')),
+    },
+  ];
+
+  const centerId = useMemo(() => {
+    const root = graphNodes.find((n) => n.title.toLowerCase() === 'woil');
+    return root?.id;
+  }, [graphNodes]);
+
+  const listItems = useMemo(
+    () => notes.map((note) => ({ note, links: linkCounts[note.id] ?? 0 })),
+    [notes, linkCounts]
+  );
+
+  const renderDrops = () => (
+    <>
       <View style={styles.headerWrap}>
         <ScreenHeader title="Drops" subtitle={subtitle} actions={headerActions} />
         {searching ? (
@@ -205,12 +300,58 @@ export default function App() {
           keyboardShouldPersistTaps="handled"
         />
       )}
+    </>
+  );
 
-      <View style={styles.footer}>
-        <Button label="Nova Nota" onPress={openCreate} />
+  const renderOcean = () => (
+    <>
+      <View style={styles.headerWrap}>
+        <ScreenHeader
+          title="Ocean"
+          subtitle={
+            oceanMode === 'graph'
+              ? `${graphNodes.length} nós · ${graphEdges.length} links`
+              : `${listItems.length} notas`
+          }
+          actions={oceanActions}
+        />
       </View>
+      {oceanMode === 'graph' ? (
+        <OceanGraph
+          nodes={graphNodes}
+          edges={graphEdges}
+          palette={PALETTE}
+          centerId={centerId}
+          onSelectNode={(id) => {
+            const note = notes.find((n) => n.id === id);
+            if (note) openEdit(note);
+          }}
+        />
+      ) : (
+        <NoteList items={listItems} onPress={openEdit} />
+      )}
+    </>
+  );
 
-      <BottomNav activeKey="drops" onSelect={() => {}} onActionPress={openCreate} />
+  return (
+    <View style={styles.container}>
+      <StatusBar style="light" />
+
+      {tab === 'drops' ? renderDrops() : renderOcean()}
+
+      {tab === 'drops' ? (
+        <View style={styles.footer}>
+          <Button label="Nova Nota" onPress={openCreate} />
+        </View>
+      ) : null}
+
+      <BottomNav
+        activeKey={tab}
+        onSelect={(key) => {
+          if (key === 'drops' || key === 'ocean') setTab(key);
+        }}
+        onActionPress={openCreate}
+      />
 
       <Modal
         visible={sheetMode !== 'closed'}
@@ -223,51 +364,68 @@ export default function App() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <View style={styles.sheet}>
-            <Text style={styles.sheetTitle}>
-              {sheetMode === 'edit' ? 'Editar Drop' : 'Novo Drop'}
-            </Text>
-            <WTextInput
-              label="Título"
-              value={draftTitle}
-              onChangeText={setDraftTitle}
-              placeholder="Título do Drop"
-              autoFocus
-            />
-            <WTextInput
-              label="Conteúdo"
-              value={draftContent}
-              onChangeText={setDraftContent}
-              placeholder="Escreva em Markdown…"
-              multiline
-            />
-            <View style={styles.sheetButtons}>
-              <Button
-                label="Cancelar"
-                variant="secondary"
-                onPress={closeSheet}
-                style={styles.sheetButton}
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <Text style={styles.sheetTitle}>
+                {sheetMode === 'edit' ? 'Editar Drop' : 'Novo Drop'}
+              </Text>
+              <WTextInput
+                label="Título"
+                value={draftTitle}
+                onChangeText={setDraftTitle}
+                placeholder="Título do Drop"
+                autoFocus
               />
-              <Button
-                label={saving ? 'Salvando…' : 'Salvar'}
-                onPress={handleSave}
-                disabled={saving}
-                style={styles.sheetButton}
+              <WTextInput
+                label="Conteúdo"
+                value={draftContent}
+                onChangeText={setDraftContent}
+                placeholder="Escreva em Markdown… ([[Nota]] cria um link)"
+                multiline
               />
-            </View>
-            {sheetMode === 'edit' && editingId ? (
-              <Button
-                label="Excluir Drop"
-                variant="secondary"
-                onPress={() => {
-                  const target = notes.find((n) => n.id === editingId);
-                  if (target) {
-                    closeSheet();
-                    handleDelete(target);
-                  }
-                }}
-                style={styles.deleteButton}
-              />
-            ) : null}
+
+              {sheetMode === 'edit' ? (
+                <BacklinkList
+                  notes={currentBacklinks}
+                  onPress={(note) => {
+                    if (note.id === editingId) return;
+                    openEdit(note);
+                  }}
+                />
+              ) : null}
+
+              <View style={styles.sheetButtons}>
+                <Button
+                  label="Cancelar"
+                  variant="secondary"
+                  onPress={closeSheet}
+                  style={styles.sheetButton}
+                />
+                <Button
+                  label={saving ? 'Salvando…' : 'Salvar'}
+                  onPress={handleSave}
+                  disabled={saving}
+                  style={styles.sheetButton}
+                />
+              </View>
+
+              {sheetMode === 'edit' && editingId ? (
+                <Button
+                  label="Excluir Drop"
+                  variant="secondary"
+                  onPress={() => {
+                    const target = notes.find((n) => n.id === editingId);
+                    if (target) {
+                      closeSheet();
+                      handleDelete(target);
+                    }
+                  }}
+                  style={styles.deleteButton}
+                />
+              ) : null}
+            </ScrollView>
           </View>
         </KeyboardAvoidingView>
       </Modal>

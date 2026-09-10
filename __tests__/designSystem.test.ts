@@ -48,8 +48,11 @@ describe('design system guards', () => {
     // <Ionicons name="add" />
     const NAMED = /<Ionicons[^>]*\bname="([^"]+)"/g;
     // icon: 'x'  |  icon: (cond ? 'a' : 'b') as ...
+    // Só as ramificações do ternário (após ? ou :) e o literal direto são
+    // nomes de ícone; strings dentro da condição (ex.: === 'graph') não são.
     const ICON_PROP = /\bicon\s*:\s*([^\n,]+)/g;
-    const STRING = /'([a-z0-9][a-z0-9-]*)'/g;
+    const DIRECT = /^\s*'([a-z0-9][a-z0-9-]*)'/;
+    const BRANCH = /[?:]\s*'([a-z0-9][a-z0-9-]*)'/g;
 
     for (const file of files) {
       const src = fs.readFileSync(file, 'utf8');
@@ -58,9 +61,12 @@ describe('design system guards', () => {
 
       while ((m = NAMED.exec(src))) candidates.push(m[1]);
       while ((m = ICON_PROP.exec(src))) {
-        let s: RegExpExecArray | null;
-        STRING.lastIndex = 0;
-        while ((s = STRING.exec(m[1]))) candidates.push(s[1]);
+        const value = m[1];
+        const direct = DIRECT.exec(value);
+        if (direct) candidates.push(direct[1]);
+        let b: RegExpExecArray | null;
+        BRANCH.lastIndex = 0;
+        while ((b = BRANCH.exec(value))) candidates.push(b[1]);
       }
 
       for (const name of candidates) {

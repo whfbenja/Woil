@@ -11,6 +11,7 @@ export const colors = {
   },
   water: '#39C6E8',
   oil: '#C99A52',
+  book: '#8B7BD8',
   auxiliary: '#38A89D',
 } as const;
 
