@@ -1,10 +1,13 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View, ViewStyle, TextStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../tokens/colors';
 import { sizes, spacing, typography } from '../tokens/layout';
 
-interface HeaderAction {
-  glyph: string;
+type IoniconName = keyof typeof Ionicons.glyphMap;
+
+export interface HeaderAction {
+  icon: IoniconName;
   onPress: () => void;
   accessibilityLabel: string;
 }
@@ -31,7 +34,7 @@ export function ScreenHeader({ title, subtitle, actions = [] }: ScreenHeaderProp
             accessibilityLabel={a.accessibilityLabel}
             style={({ pressed }) => [styles.action, pressed && styles.pressed]}
           >
-            <Text style={styles.actionGlyph}>{a.glyph}</Text>
+            <Ionicons name={a.icon} size={22} color={colors.text.secondary} />
           </Pressable>
         ))}
       </View>
@@ -58,5 +61,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   } as ViewStyle,
   pressed: { opacity: 0.6 } as ViewStyle,
-  actionGlyph: { fontSize: 22, color: colors.text.secondary } as TextStyle,
 });

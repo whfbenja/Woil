@@ -5,3 +5,5 @@ export { ScreenHeader } from './ScreenHeader';
 export { EmptyState } from './EmptyState';
 export { BottomNav, NAV_ITEMS } from './BottomNav';
 export type { NavItem } from './BottomNav';
+export type { HeaderAction } from './ScreenHeader';
+export type { ButtonVariant } from './Button';

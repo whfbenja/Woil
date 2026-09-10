@@ -155,7 +155,7 @@ export default function App() {
 
   const headerActions = [
     {
-      glyph: searching ? '×' : '⌕',
+      icon: (searching ? 'close' : 'search-outline') as 'close' | 'search-outline',
       accessibilityLabel: searching ? 'Fechar busca' : 'Buscar',
       onPress: () => {
         if (searching) {

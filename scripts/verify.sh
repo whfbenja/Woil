@@ -2,8 +2,9 @@
 # ============================================================
 # WOIL — GATE DE VARREDURA PRÉ-BUILD (parity com EAS)
 # Executa localmente as MESMAS checagens do pipeline EAS, na
-# ordem em que elas falham na nuvem. Rodar apos toda alteracao
-# significativa, ANTES de qualquer `eas build`.
+# ordem em que elas falham na nuvem, mais guardas de regressão
+# próprios do projeto. Rodar apos toda alteracao significativa,
+# ANTES de qualquer `eas build`.
 # Uso: bash scripts/verify.sh   (ou: npm run verify)
 # ============================================================
 set -uo pipefail
@@ -51,8 +52,36 @@ step "3 expo-install-check" npx expo install --check
 # 4. Typecheck completo (TS estrito)
 step "4 tsc" npx tsc --noEmit
 
-# 5. Testes unitarios
+# 5. Testes unitarios (dominio + application + guardas de UI)
 step "5 jest" npx jest --ci --silent
+
+# 5b. Cobertura mínima das suites críticas: garante que os testes de
+#     guarda não foram silenciosamente removidos/renomeados.
+step "5b jest-suites" bash -c '
+  out=$(npx jest --listTests 2>/dev/null)
+  for need in index parsers designSystem noteService; do
+    echo "$out" | grep -q "$need" || { echo "suite ausente: $need"; exit 1; }
+  done
+'
+
+# 5c. Guarda de infraestrutura: a API legada do expo-file-system só pode
+#     ser importada de "expo-file-system/legacy" (bug que deixou os
+#     handlers de UI mudos em runtime sem quebrar tsc/jest).
+step "5c fs-legacy-import" bash -c '
+  bad=0
+  for f in $(find src -name "*.ts" -o -name "*.tsx"); do
+    if grep -qE "\b(documentDirectory|readAsStringAsync|writeAsStringAsync|getInfoAsync|deleteAsync|makeDirectoryAsync|readDirectoryAsync)\b" "$f"; then
+      grep -q "expo-file-system/legacy" "$f" || { echo "import legado ausente em $f"; bad=1; }
+    fi
+  done
+  [ "$bad" -eq 0 ]
+'
+
+# 5d. Guarda de design system: nenhum hexadecimal cru fora de tokens.
+step "5d no-raw-hex" bash -c '
+  offenders=$(grep -nE "#[0-9a-fA-F]{3,8}\b" src/ui/*.tsx src/App.tsx 2>/dev/null | grep -vE "^\S+:[0-9]+:\s*(//|\*|/\*)" || true)
+  if [ -n "$offenders" ]; then echo "$offenders"; exit 1; fi
+'
 
 # 6. Bundling Metro real — reproduz a fase EAGER_BUNDLE do EAS.
 #    Valida que TODOS os imports resolvem fora do Termux tambem

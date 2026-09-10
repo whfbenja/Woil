@@ -1,20 +1,23 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View, ViewStyle, TextStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../tokens/colors';
 import { radius, sizes, spacing, typography } from '../tokens/layout';
+
+type IoniconName = keyof typeof Ionicons.glyphMap;
 
 export interface NavItem {
   key: string;
   label: string;
-  glyph: string;
+  icon: IoniconName;
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { key: 'surface', label: 'Surface', glyph: '◇' },
-  { key: 'drops', label: 'Drops', glyph: '◍' },
-  { key: 'dive', label: 'Dive', glyph: '◎' },
-  { key: 'library', label: 'Library', glyph: '▤' },
-  { key: 'more', label: 'Mais', glyph: '⋯' },
+  { key: 'surface', label: 'Surface', icon: 'home-outline' },
+  { key: 'drops', label: 'Drops', icon: 'water-outline' },
+  { key: 'dive', label: 'Dive', icon: 'search-outline' },
+  { key: 'library', label: 'Library', icon: 'library-outline' },
+  { key: 'more', label: 'Mais', icon: 'ellipsis-horizontal' },
 ];
 
 interface BottomNavProps {
@@ -24,22 +27,24 @@ interface BottomNavProps {
 }
 
 export function BottomNav({ activeKey, onSelect, onActionPress }: BottomNavProps) {
-  // Insere o botão central (+) entre Dive e Library (posição 3 de 6)
+  // Botão central (+) inserido entre Dive e Library (posição 3 de 6)
   const before = NAV_ITEMS.slice(0, 3);
   const after = NAV_ITEMS.slice(3);
 
   const renderItem = (item: NavItem) => {
     const active = item.key === activeKey;
+    const tint = active ? colors.water : colors.text.secondary;
     return (
       <Pressable
         key={item.key}
         onPress={() => onSelect(item.key)}
         accessibilityRole="button"
         accessibilityLabel={item.label}
+        accessibilityState={{ selected: active }}
         style={styles.item}
       >
-        <Text style={[styles.glyph, active && styles.glyphActive]}>{item.glyph}</Text>
-        <Text style={[styles.label, active && styles.labelActive]} numberOfLines={1}>
+        <Ionicons name={item.icon} size={22} color={tint} />
+        <Text style={[styles.label, { color: tint }]} numberOfLines={1}>
           {item.label}
         </Text>
       </Pressable>
@@ -55,7 +60,7 @@ export function BottomNav({ activeKey, onSelect, onActionPress }: BottomNavProps
         accessibilityLabel="Criar Drops"
         style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
       >
-        <Text style={styles.fabGlyph}>＋</Text>
+        <Ionicons name="add" size={28} color={colors.background.primary} />
       </Pressable>
       {after.map(renderItem)}
     </View>
@@ -78,11 +83,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
+    minWidth: sizes.touchTarget,
   } as ViewStyle,
-  glyph: { fontSize: 20, color: colors.text.secondary } as TextStyle,
-  glyphActive: { color: colors.water } as TextStyle,
-  label: { ...typography.meta, color: colors.text.secondary, marginTop: 2 } as TextStyle,
-  labelActive: { color: colors.water } as TextStyle,
+  label: { ...typography.meta, marginTop: 2 } as TextStyle,
   fab: {
     width: sizes.fab,
     height: sizes.fab,
@@ -93,9 +96,4 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.xs,
   } as ViewStyle,
   fabPressed: { opacity: 0.8 } as ViewStyle,
-  fabGlyph: {
-    fontSize: 26,
-    color: colors.background.primary,
-    fontWeight: '600',
-  } as TextStyle,
 });
